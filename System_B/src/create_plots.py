@@ -164,27 +164,41 @@ def create_dispatch_plot():
     fig.savefig(abs_path  + '/plots/' + 'dispatch_stack_plot.pdf', bbox_inches='tight', figsize=(12, 6), dpi=100)
 
 
+def plot_gas_prices():
+    fig, ax = plt.subplots(figsize=(13, 5))
+    gas_prices = pd.read_csv(abs_path + '/data/' + 'raw/natural_gas_prices/natural_gas_prices.csv').fillna(method='ffill', limit=1)
+    gas_prices = gas_prices.set_index(['year', 'term'])
+    print(gas_prices)
+    gas_prices.plot(ax=ax)
+    ax.legend()
+    ax.set_xticks(range(len(gas_prices)));
+    ax.set_xticklabels(["%s-%02d" % item for item in gas_prices.index.tolist()], rotation=45);
+    ax.set_ylabel('Time')
+    ax.set_ylabel('Eur/kWh')
+    fig.savefig(abs_path + '/plots/' + 'gas_prices_plot.pdf', bbox_inches='tight', figsize=(12, 6))
+
 def create_plots():
-    plot_heat_demand()
-    draw_graph(energysystem_graph, plot=False, store=True, filename=abs_path + '/plots/' + 'es_graph.pdf',
-               node_size=5000, edge_color='k',
-               node_color={
-                   'natural gas': '#19A8B8',
-                   'ccgt': '#19A8B8',
-                   'electricity': '#F9FF00',
-                   'power_to_heat': '#F9FF00',
-                   'storage_heat': '#FF0000',
-                   'heat_prim': '#FF0000',
-                   'dhn_prim': '#686868',
-                   'heat_sec': '#FF5300',
-                   'dhn_sec': '#686868',
-                   'heat_end': '#FF9900',
-                   'shortage_heat': '#FF0000',
-                   'demand_heat': '#eeac7e'})
-
-
-    rcParams['figure.figsize'] = [10.0, 10.0]
-    create_dispatch_plot()
+    # plot_heat_demand()
+    # draw_graph(energysystem_graph, plot=False, store=True, filename=abs_path + '/plots/' + 'es_graph.pdf',
+    #            node_size=5000, edge_color='k',
+    #            node_color={
+    #                'natural gas': '#19A8B8',
+    #                'ccgt': '#19A8B8',
+    #                'electricity': '#F9FF00',
+    #                'power_to_heat': '#F9FF00',
+    #                'storage_heat': '#FF0000',
+    #                'heat_prim': '#FF0000',
+    #                'dhn_prim': '#686868',
+    #                'heat_sec': '#FF5300',
+    #                'dhn_sec': '#686868',
+    #                'heat_end': '#FF9900',
+    #                'shortage_heat': '#FF0000',
+    #                'demand_heat': '#eeac7e'})
+    #
+    #
+    # rcParams['figure.figsize'] = [10.0, 10.0]
+    # create_dispatch_plot()
+    plot_gas_prices()
 
 if __name__ == '__main__':
     create_plots()
