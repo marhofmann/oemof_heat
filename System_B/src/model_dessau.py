@@ -76,9 +76,6 @@ def run_model_dessau(config_path, results_dir):
     energysystem.add(solph.Source(label='shortage_heat',
         outputs={bth_prim: solph.Flow(variable_costs=prices['heat_shortage'])}))
 
-    # energysystem.add(solph.Source(label='rgas',
-    #     outputs={bgas: solph.Flow(
-    #         variable_costs=0)}))
 
     if cfg['investment']['invest_chp']:
         energysystem.add(solph.Transformer(
