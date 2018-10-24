@@ -67,13 +67,50 @@ def print_summed_heat(energysystem):
 
 
 def get_param_as_dict(energysystem):
-    param = energysystem.results['param']
+    return energysystem.results['param']
+
+
+def test_analyzer(energysystem):
+    from oemof.outputlib import analyzer
+    results = energysystem.results['main']
+    param_results = energysystem.results['param']
+    analysis = analyzer.Analysis(results, param_results,
+                                 iterator=analyzer.FlowNodeIterator)  # optional auch non-standard iterator angeben
+    seq = analyzer.SequenceFlowSumAnalyzer()
+    ft = analyzer.FlowTypeAnalyzer()
+    bb = analyzer.BusBalanceAnalyzer()
+    # lcoe = analyzer.LCOEAnalyzer()
+    nb = analyzer.NodeBalanceAnalyzer()
+    size = analyzer.SizeAnalyzer()
+    inv = analyzer.InvestAnalyzer()
+    oph = analyzer.OperatingHoursAnalyzer()
+    prod = analyzer.ProductionAnalyzer()
+    varc = analyzer.VariableCostAnalyzer()
+
+    analysis.add_analyzer(seq)
+    analysis.add_analyzer(ft)
+    analysis.add_analyzer(bb)
+    # analysis.add_analyzer(lcoe)
+    analysis.add_analyzer(size)
+    analysis.add_analyzer(inv)
+    analysis.add_analyzer(nb)
+    analysis.add_analyzer(oph)
+    analysis.add_analyzer(prod)
+    analysis.add_analyzer(varc)
+
+    analysis.analyze()
+    print(analysis.__dir__())
+    print(analysis._Analysis__analyze_chain)
+    balance = bb.result[(bus, None)]  # Beispielzugriff auf ein Ergebnis
+
+
 
 def postprocess():
     energysystem = solph.EnergySystem()
     energysystem.restore(dpath=abs_path + '/model_runs/experiment_1' + '/optimisation_results', filename='es.dump')
     print_summed_heat(energysystem)
-    get_param_as_dict(energysystem)
+    param_as_dict = get_param_as_dict(energysystem)
+    test_analyzer(energysystem)
 
 if __name__ == '__main__':
     postprocess()
