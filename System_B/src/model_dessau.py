@@ -34,6 +34,7 @@ logger.define_logging()
 
 def run_model_dessau(config_path, results_dir):
 
+    # load experiment configuration
     with open(abs_path + config_path, 'r') as ymlfile:
         cfg = yaml.load(ymlfile)
 
@@ -42,18 +43,6 @@ def run_model_dessau(config_path, results_dir):
     else:
         number_timesteps = 8760
 
-    date_time_index = pd.date_range('1/1/2012', periods=number_timesteps,
-                                    freq='H')
-
-    logging.info('Initialize the energy system')
-    energysystem = solph.EnergySystem(timeindex=date_time_index)
-
-    # random data
-    # demand_heat = pd.DataFrame(np.random.randint(0, 100,
-    #     size=(number_timesteps, 1)))*1e-2
-
-
-
     prices = cfg['prices']
     ccgt = cfg['ccgt']
     power_to_heat = cfg['power_to_heat']
@@ -61,6 +50,13 @@ def run_model_dessau(config_path, results_dir):
     demand_heat = cfg['demand_heat']
     demand_heat['timeseries'] = pd.read_csv(results_dir + '/data_preprocessed/' + 'demand_heat.csv', sep=",")['efh']
     wacc = cfg['wacc']
+
+    # Initialize timeindex, logger and energysystem
+    date_time_index = pd.date_range('1/1/2012', periods=number_timesteps,
+                                    freq='H')
+
+    logging.info('Initialize the energy system')
+    energysystem = solph.EnergySystem(timeindex=date_time_index)
 
     #####################################################################
     logging.info('Create oemof objects')
@@ -106,7 +102,7 @@ def run_model_dessau(config_path, results_dir):
 
     if cfg['investment']['invest_pth']:
         energysystem.add(solph.Transformer(
-            label='power-to-heat',
+            label='power_to_heat',
             inputs={bel: solph.Flow(variable_costs=prices['el'])},
             outputs={bth_prim: solph.Flow(
                 investment=solph.Investment(
@@ -160,7 +156,7 @@ def run_model_dessau(config_path, results_dir):
 
     #####################################################################
     logging.info('Solve the optimization problem')
-
+    #####################################################################
 
     om = solph.Model(energysystem)
     om.solve(solver=cfg['solver'], solve_kwargs={'tee': True})
