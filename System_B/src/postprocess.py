@@ -23,6 +23,7 @@ import os
 import pandas as pd
 import oemof.solph as solph
 import oemof.outputlib as outputlib
+from oemof.outputlib import analyzer, views
 
 abs_path = os.path.dirname(os.path.abspath(os.path.join(__file__, '..')))
 
@@ -70,25 +71,51 @@ def get_param_as_dict(energysystem):
     return energysystem.results['param']
 
 
+
+
+
+
+
+# def get_load_duration_curves():
+# def get_coverage_through_renewables():
+# def get_summed_excess():
+# def get_max_excess():
+# def get_summed_import():
+# def get_max_import():
+# def get_emmission():
+
 def test_analyzer(energysystem):
-    from oemof.outputlib import analyzer
     results = energysystem.results['main']
     param_results = energysystem.results['param']
     analysis = analyzer.Analysis(results, param_results,
                                  iterator=analyzer.FlowNodeIterator)  # optional auch non-standard iterator angeben
+    nodes = {}
+    for node in ['power_to_heat', 'ccgt', 'shortage_heat', 'demand_heat', 'storage_heat', 'electricity', 'natural_gas']:
+        nodes[node] = views.get_node_by_name(results, node)
+
+    # results[current_tuple]['sequence']['flows'].sum()
     seq = analyzer.SequenceFlowSumAnalyzer()
+    # Categorizes flows by input and output
     ft = analyzer.FlowTypeAnalyzer()
+    # Same as NodeBalanceAnalyzer, but only for Busses
     bb = analyzer.BusBalanceAnalyzer()
+    # # Calculates LCOE by adding results from InvestAnalyzer
+    # # and VariableCostAnalyzer divided by flow sum of all demand
+    # # outputs (therefore, LCOEAnalyzer has to be initialized with
+    # # list of demand outputs!)
     # lcoe = analyzer.LCOEAnalyzer()
+    # Returns node balance (input and output sums) of current node
     nb = analyzer.NodeBalanceAnalyzer()
     size = analyzer.SizeAnalyzer()
+    # Calculates investment multiplied by ep_costs
     inv = analyzer.InvestAnalyzer()
     oph = analyzer.OperatingHoursAnalyzer()
     prod = analyzer.ProductionAnalyzer()
+    # Calculates variable_costs multiplied by flow sum
     varc = analyzer.VariableCostAnalyzer()
 
-    analysis.add_analyzer(seq)
     analysis.add_analyzer(ft)
+    analysis.add_analyzer(seq)
     analysis.add_analyzer(bb)
     # analysis.add_analyzer(lcoe)
     analysis.add_analyzer(size)
@@ -99,9 +126,21 @@ def test_analyzer(energysystem):
     analysis.add_analyzer(varc)
 
     analysis.analyze()
-    print(analysis.__dir__())
-    print(analysis._Analysis__analyze_chain)
-    balance = bb.result[(bus, None)]  # Beispielzugriff auf ein Ergebnis
+    # print(analysis.__dir__())
+    # print(analysis._Analysis__analyze_chain)
+
+    # get_summed_variable_costs of ccgt and power_to_heat
+    print('varc', varc.result[(nodes['natural_gas'], nodes['ccgt'])], varc.result[(nodes['electricity'], nodes['power_to_heat'])], '\n')
+    # get_summed operating hours of ccgt and power_to_heat
+    print('oph', oph.result[(nodes['natural_gas'], nodes['ccgt'])], oph.result[(nodes['electricity'], nodes['power_to_heat'])], '\n')
+    # def get_summed Production of ccgt and power_to_heat
+    # def get_mean Production during operation hours of ccgt and power_to_heat
+    # def get_maximal Production of ccgt and power_to_heat
+    # def get_minimal Production of ccgt and power_to_heat
+    print('prod', prod.result[(nodes['natural_gas'], nodes['ccgt'])], prod.result[(nodes['electricity'], nodes['power_to_heat'])], '\n')
+    # def get_full load hours of ccgt and power_to_heat
+    # def get_start count of ccgt and power_to_heat
+    # balance = bb.result[(demand_heat, None)]  # Beispielzugriff auf ein Ergebnis
 
 
 
