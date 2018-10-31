@@ -31,20 +31,32 @@ def calculate_area_statistics():
                                   names=['Baujahr', 'Gebauede_Anzahl_Wohnungen', 'Groesse_m2', 'Anzahl'])
 
     # clean data
-    zensus_data['Groesse_m2'] = zensus_data['Groesse_m2'].str[-3:].replace(['ehr','amt'], np.nan).astype('float')
-    zensus_data['Anzahl'] = zensus_data['Anzahl'].str.replace('(', '').str.replace(')', '').replace(['-'], np.nan).astype('float')
+    zensus_data['Groesse_m2_cleaned'] = zensus_data['Groesse_m2'].str[-3:]
+    zensus_data['Groesse_m2_cleaned'] = zensus_data['Groesse_m2_cleaned'].replace('ehr', 200)
+    zensus_data['Groesse_m2_cleaned'] = zensus_data['Groesse_m2_cleaned'].replace('amt', np.nan)
+    zensus_data['Groesse_m2_cleaned'] = zensus_data['Groesse_m2_cleaned'].astype('float') - 4.5
+    zensus_data['Groesse_m2_cleaned'] = zensus_data['Groesse_m2_cleaned'].replace(195.5, 200)
+    zensus_data['Groesse_m2_cleaned'] = zensus_data['Groesse_m2_cleaned'].replace(25.5, 20)
+
+    zensus_data['Anzahl_cleaned'] = zensus_data['Anzahl'].str.replace('(', '').str.replace(')', '').replace(['-'], np.nan).astype('float')
+
     # calculate total area
-    zensus_data['area'] = zensus_data['Anzahl'] * zensus_data['Groesse_m2']
+    zensus_data['Flaeche'] = zensus_data['Anzahl_cleaned'] * zensus_data['Groesse_m2_cleaned']
+    print(zensus_data.head(45))
+
     # save the result
-    zensus_data.to_csv(abs_path + '/data_raw/area.csv')
-    print(zensus_data.groupby(['Baujahr', 'Gebauede_Anzahl_Wohnungen'])['area'].sum())
-    print(zensus_data.groupby(['Baujahr', 'Gebauede_Anzahl_Wohnungen'])['area'].sum().unstack())
-    print(zensus_data['Baujahr'].unique())
+    zensus_data.to_csv(abs_path + '/data_preprocessed/area.csv')
+
 
 
 def calculate_annual_heat_demand():
     heat_demand_per_area = pd.read_csv(abs_path + '/data_raw/dena_heat_demand_per_area.csv', index_col='year')
-    print(heat_demand_per_area)
+    # print(heat_demand_per_area)
+    zensus_data = pd.read_csv(abs_path + '/data_preprocessed/area.csv')
+    print(zensus_data.groupby(['Baujahr', 'Gebauede_Anzahl_Wohnungen'])['Flaeche'].sum())
+    print(zensus_data.groupby(['Baujahr', 'Gebauede_Anzahl_Wohnungen'])['Flaeche'].sum().unstack())
+    print(zensus_data['Baujahr'].unique())
+
 
 
 download_zensus_data()
