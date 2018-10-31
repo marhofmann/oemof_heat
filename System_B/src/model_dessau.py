@@ -80,7 +80,7 @@ def run_model_dessau(config_path, results_dir):
     if cfg['investment']['invest_chp']:
         energysystem.add(solph.Transformer(
             label='ccgt',
-            inputs={bgas: solph.Flow(variable_costs=price_gas)},
+            inputs={bgas: solph.Flow(variable_costs=prices['gas'])},
             outputs={bth_prim: solph.Flow(
                 investment=solph.Investment(
                     ep_costs=economics.annuity(
